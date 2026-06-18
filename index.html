@@ -1,0 +1,943 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ProfPrep — Texas Insurance License Exam Preparation</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Source+Sans+3:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --soil:#1C1410;--soil-mid:#2a1e17;
+  --terra:#C4622D;--clay:#8B4513;
+  --sun:#E8A838;--sun-light:#F5EDD0;
+  --surface:#F7F3EE;--white:#fff;
+  --sky:#2E86AB;--sky-bg:#EFF8FF;
+  --grass:#2D6A4F;--grass-light:#e8f4ed;
+  --border:rgba(139,69,19,.12);--text:#1C1410;--text-2:#5a3a28;--text-3:#9a7060;
+  --red:#D85A30;--red-bg:#faece7;--amber:#b7791f;--amber-bg:#fef3c7;
+  --r:12px;--rs:8px;
+}
+body{font-family:'Source Sans 3',sans-serif;background:var(--surface);color:var(--text);min-height:100vh;font-size:15px}
+
+/* AUTH */
+#auth-screen{position:fixed;inset:0;background:var(--soil);display:flex;align-items:center;justify-content:center;z-index:1000;padding:2rem}
+#auth-screen::before{content:'';position:absolute;inset:0;background-image:linear-gradient(rgba(196,98,45,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(196,98,45,.04) 1px,transparent 1px);background-size:50px 50px}
+.auth-glow{position:absolute;width:500px;height:500px;border-radius:50%;background:radial-gradient(circle,rgba(139,69,19,.4) 0%,transparent 70%);top:-100px;left:50%;transform:translateX(-50%);pointer-events:none}
+.auth-box{position:relative;z-index:2;background:rgba(255,255,255,.04);border:1px solid rgba(196,98,45,.2);border-radius:16px;padding:2.5rem;width:100%;max-width:420px;text-align:center}
+.auth-mark{width:56px;height:56px;background:var(--soil);border:2px solid var(--terra);border-radius:12px;display:flex;align-items:center;justify-content:center;font-family:'Playfair Display',serif;color:var(--terra);font-size:30px;font-style:italic;margin:0 auto .75rem;box-shadow:0 0 24px rgba(196,98,45,.2)}
+.auth-logo{font-family:'Playfair Display',serif;font-size:22px;margin-bottom:.25rem}
+.auth-logo .p{color:var(--sun)}.auth-logo .pp{color:var(--terra)}
+.auth-tagline{font-size:11px;color:rgba(255,255,255,.25);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:1.5rem}
+.auth-sub{font-size:13px;color:rgba(255,255,255,.45);margin-bottom:1.75rem;line-height:1.65}
+.auth-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:rgba(255,255,255,.35);text-align:left;display:block;margin-bottom:.4rem}
+.auth-input{width:100%;padding:.75rem 1rem;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:8px;color:white;font-family:'Source Sans 3',sans-serif;font-size:14px;outline:none;margin-bottom:1rem;transition:border-color .2s}
+.auth-input:focus{border-color:var(--terra)}.auth-input::placeholder{color:rgba(255,255,255,.2)}
+.auth-btn{width:100%;padding:.9rem;background:var(--terra);color:white;font-family:'Source Sans 3',sans-serif;font-size:14px;font-weight:700;border:none;border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:opacity .2s}
+.auth-btn:hover{opacity:.9}.auth-btn:disabled{opacity:.4;cursor:not-allowed}
+.auth-msg{font-size:13px;margin-top:1rem;min-height:20px}
+.auth-msg.error{color:#FCA5A5}.auth-msg.success{color:#86EFAC}
+.auth-fine{font-size:11px;color:rgba(255,255,255,.18);margin-top:1.25rem}
+
+/* APP */
+.app-header{background:var(--soil);padding:.85rem 1.5rem;display:flex;align-items:center;justify-content:space-between;border-bottom:2px solid var(--terra)}
+.hbrand{display:flex;align-items:center;gap:12px}
+.hmark{width:34px;height:34px;background:var(--soil);border:1.5px solid var(--terra);border-radius:7px;display:flex;align-items:center;justify-content:center;font-family:'Playfair Display',serif;color:var(--terra);font-size:18px;font-style:italic}
+.hname{font-family:'Playfair Display',serif;font-size:18px;line-height:1}
+.hname .p{color:var(--sun)}.hname .pp{color:var(--terra)}
+.hsub{font-size:10px;color:rgba(255,255,255,.3);letter-spacing:1px;text-transform:uppercase;margin-top:2px}
+.huser{display:flex;align-items:center;gap:10px}
+.hemail{font-size:12px;color:rgba(255,255,255,.35)}
+.btn-out{background:none;border:1px solid rgba(255,255,255,.12);color:rgba(255,255,255,.35);font-size:11px;padding:5px 12px;border-radius:6px;cursor:pointer;font-family:'Source Sans 3',sans-serif;transition:all .2s}
+.btn-out:hover{border-color:rgba(255,255,255,.3);color:rgba(255,255,255,.65)}
+.tab-bar{background:var(--soil-mid);display:flex;padding:0 1.5rem;border-bottom:1px solid rgba(255,255,255,.05);overflow-x:auto}
+.tab{padding:.75rem 1rem;color:rgba(255,255,255,.4);font-size:12px;font-weight:500;cursor:pointer;border:none;border-bottom:2px solid transparent;display:flex;align-items:center;gap:5px;background:none;font-family:'Source Sans 3',sans-serif;transition:all .2s;white-space:nowrap}
+.tab:hover{color:rgba(255,255,255,.7)}.tab.active{color:var(--sun);border-bottom-color:var(--terra)}
+.tab i{font-size:13px}
+.main{padding:1.5rem;max-width:960px;margin:0 auto}
+.panel{display:none}.panel.active{display:block}
+
+/* SHARED */
+.card{background:var(--white);border:.5px solid var(--border);border-radius:var(--r);padding:1.25rem;margin-bottom:1rem}
+.sec-title{font-family:'Playfair Display',serif;font-size:20px;color:var(--soil);margin-bottom:4px}
+.sec-sub{font-size:13px;color:var(--text-2);margin-bottom:1rem}
+.sh{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:1.25rem;gap:1rem}
+label{font-size:11px;font-weight:700;color:var(--text-2);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px}
+select,input[type=text],textarea{width:100%;padding:.6rem .85rem;border:.5px solid var(--border);border-radius:var(--rs);font-family:'Source Sans 3',sans-serif;font-size:14px;color:var(--text);background:white;outline:none;transition:border-color .2s;appearance:none}
+select:focus,input:focus,textarea:focus{border-color:var(--terra)}
+textarea{resize:vertical;min-height:80px;line-height:1.6}
+.fr{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem}
+.fg{margin-bottom:1rem}
+.btn{padding:.6rem 1.1rem;border-radius:var(--rs);font-family:'Source Sans 3',sans-serif;font-size:13px;font-weight:700;cursor:pointer;border:none;transition:all .2s;display:inline-flex;align-items:center;gap:6px}
+.btn-soil{background:var(--soil);color:white}.btn-soil:hover{background:var(--soil-mid)}
+.btn-sun{background:var(--sun);color:var(--soil)}.btn-sun:hover{opacity:.9}
+.btn-outline{background:none;border:.5px solid var(--border);color:var(--text-2)}.btn-outline:hover{border-color:var(--terra);color:var(--terra)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.spinner{display:inline-block;width:13px;height:13px;border:2px solid rgba(255,255,255,.3);border-top-color:white;border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes bounce{0%,100%{transform:translateY(0);opacity:.4}50%{transform:translateY(-4px);opacity:1}}
+
+/* DASHBOARD */
+.dash-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem}
+.dc{background:var(--white);border:.5px solid var(--border);border-radius:var(--r);padding:1.1rem}
+.dc.dark{background:var(--soil)}
+.dc-lbl{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text-3);margin-bottom:.4rem}
+.dc-lbl.lt{color:rgba(255,255,255,.3)}
+.dc-val{font-family:'Playfair Display',serif;font-size:38px;color:var(--soil);line-height:1}
+.dc-val.sun{color:var(--sun)}
+.dc-sub{font-size:11px;color:var(--text-3);margin-top:3px}
+.dc-sub.lt{color:rgba(255,255,255,.3)}
+.streak-dots{display:flex;gap:4px;margin-top:.6rem}
+.sd{width:24px;height:24px;border-radius:5px;background:rgba(255,255,255,.07);display:flex;align-items:center;justify-content:center;font-size:8px;color:rgba(255,255,255,.3);font-weight:700}
+.sd.today{background:var(--terra);color:white}
+.mode-grid{display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-bottom:1rem}
+.mc{background:var(--white);border:.5px solid var(--border);border-radius:var(--r);padding:1rem;cursor:pointer;transition:all .2s;position:relative;overflow:hidden;text-align:center}
+.mc::after{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+.mc.terra::after{background:var(--terra)}.mc.sun::after{background:var(--sun)}
+.mc.sky::after{background:var(--sky)}.mc.grass::after{background:var(--grass)}
+.mc.clay::after{background:var(--clay)}.mc.soil::after{background:var(--soil)}
+.mc:hover{border-color:var(--terra);transform:translateY(-1px);box-shadow:0 4px 16px rgba(196,98,45,.08)}
+.mc-icon{font-size:22px;margin-bottom:.35rem}
+.mc-title{font-size:12px;font-weight:700;color:var(--soil);margin-bottom:2px}
+.mc-desc{font-size:10px;color:var(--text-3);line-height:1.4}
+.nudge{background:linear-gradient(135deg,var(--red-bg),#fff5f0);border:1px solid rgba(216,90,48,.2);border-radius:var(--rs);padding:.75rem 1rem;margin-bottom:1rem;display:flex;align-items:center;gap:10px}
+.nudge-text{font-size:12px;color:var(--text);line-height:1.5;flex:1}
+.nudge-text strong{color:var(--red)}
+.topic-bars-wrap{background:var(--white);border:.5px solid var(--border);border-radius:var(--r);padding:1rem 1.25rem;margin-bottom:1rem}
+.tbl{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--text-3);margin-bottom:.75rem}
+.tb-row{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+.tb-name{font-size:11px;color:var(--text-2);width:160px;flex-shrink:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tb-wrap{flex:1;height:7px;background:var(--surface);border-radius:99px;overflow:hidden;border:.5px solid var(--border)}
+.tb-fill{height:100%;border-radius:99px;transition:width .6s}
+.tb-pct{font-size:10px;font-weight:700;width:32px;text-align:right}
+.act-list{display:flex;flex-direction:column}
+.act-item{display:flex;align-items:center;gap:10px;padding:.6rem 0;border-bottom:.5px solid var(--border)}
+.act-item:last-child{border-bottom:none}
+.act-icon{width:28px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
+.act-t{font-weight:600;color:var(--text);font-size:12px}
+.act-time{font-size:10px;color:var(--text-3)}
+.empty{text-align:center;padding:2rem;color:var(--text-3)}
+.empty i{font-size:32px;display:block;margin-bottom:.5rem}
+.empty p{font-size:13px;line-height:1.6}
+.pb-badge{display:inline-flex;align-items:center;gap:4px;background:var(--sun-light);border:.5px solid rgba(232,168,56,.3);border-radius:99px;padding:2px 9px;font-size:9px;font-weight:700;color:#7a5c10}
+.alloc-row{display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1rem}
+.alloc-chip{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:99px;font-size:10px;font-weight:700;font-family:'DM Mono',monospace;border:.5px solid var(--border);background:var(--surface);color:var(--text-2)}
+.alloc-chip.low{background:var(--red-bg);border-color:rgba(216,90,48,.2);color:var(--red)}
+.alloc-chip.ok{background:var(--grass-light);border-color:rgba(45,106,79,.2);color:var(--grass)}
+.limit-badge{font-size:10px;color:var(--text-3);background:var(--surface);border:.5px solid var(--border);border-radius:99px;padding:2px 8px;font-family:'DM Mono',monospace}
+
+/* PILLS */
+.pills{display:flex;flex-wrap:wrap;gap:6px;margin:.5rem 0 1rem}
+.pill{padding:5px 11px;border-radius:99px;font-size:11px;font-weight:600;border:.5px solid var(--border);cursor:pointer;transition:all .15s;background:white;color:var(--text-2);font-family:'Source Sans 3',sans-serif}
+.pill.sel{background:var(--soil);color:white;border-color:var(--soil)}
+.pill.ok-pill.sel{background:var(--terra);border-color:var(--terra)}
+.pill:hover:not(.sel){border-color:var(--terra);color:var(--terra)}
+
+/* GUIDE */
+.guide-out{background:white;border:.5px solid var(--border);border-radius:var(--rs);padding:1.5rem;font-size:14px;line-height:1.8;color:var(--text);min-height:200px}
+.guide-out h3{font-family:'Playfair Display',serif;font-size:17px;color:var(--soil);margin:1rem 0 .3rem;border-bottom:1px solid var(--sun-light);padding-bottom:3px}
+.guide-out h4{font-size:12px;font-weight:700;color:var(--clay);margin:.6rem 0 .2rem;text-transform:uppercase;letter-spacing:.3px}
+.guide-out ul{padding-left:1.25rem}.guide-out li{margin-bottom:.2rem}
+.guide-out strong{color:var(--soil);font-weight:700}
+.guide-out .alert{background:var(--sun-light);border:.5px solid rgba(232,168,56,.35);border-radius:7px;padding:.75rem;margin-top:.75rem;font-size:13px}
+.guide-out .alert-title{font-weight:700;font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:#7a5c10;margin-bottom:4px}
+.guide-out .ok-callout{background:rgba(196,98,45,.06);border-left:3px solid var(--terra);border-radius:0 7px 7px 0;padding:.75rem 1rem;margin:.75rem 0;font-size:13px}
+.guide-out .ok-callout-title{font-weight:700;font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:var(--terra);margin-bottom:4px}
+.formula-box{background:var(--surface);border:.5px solid var(--border);border-radius:6px;padding:.55rem .85rem;font-family:'DM Mono',monospace;font-size:13px;margin:.35rem 0}
+.loading-card{padding:2.5rem;text-align:center;color:var(--text-3)}
+.loading-spinner{width:28px;height:28px;border:3px solid var(--border);border-top-color:var(--terra);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 1rem}
+
+/* CHAT */
+.chat-wrap{border:.5px solid var(--border);border-radius:var(--r);overflow:hidden;background:var(--white)}
+.chat-head{padding:.75rem 1rem;background:var(--soil);display:flex;align-items:center;gap:8px}
+.chat-head-title{font-family:'Playfair Display',serif;color:white;font-size:13px}
+.chat-online{width:6px;height:6px;border-radius:50%;background:var(--sun);margin-left:auto}
+.chip-bar{padding:.6rem 1rem;border-bottom:.5px solid var(--border);display:flex;gap:5px;flex-wrap:wrap}
+.chip{padding:3px 9px;border-radius:99px;font-size:10px;font-weight:700;background:rgba(196,98,45,.08);color:var(--clay);cursor:pointer;border:.5px solid rgba(196,98,45,.15);transition:all .15s;font-family:'Source Sans 3',sans-serif}
+.chip:hover{background:var(--soil);color:white}
+.chat-msgs{padding:1rem;display:flex;flex-direction:column;gap:.75rem;min-height:280px;max-height:420px;overflow-y:auto}
+.msg{display:flex;gap:8px;align-items:flex-start}
+.msg.user{flex-direction:row-reverse}
+.av{width:28px;height:28px;min-width:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0}
+.av.t{background:var(--soil);color:var(--terra);font-family:'Playfair Display',serif;font-style:italic;font-size:13px;border:1px solid var(--terra)}
+.av.u{background:var(--terra);color:white}
+.bubble{max-width:78%;padding:.6rem .9rem;border-radius:10px;font-size:13px;line-height:1.65}
+.msg.t .bubble{background:var(--surface);border:.5px solid var(--border);color:var(--text);border-top-left-radius:2px}
+.msg.user .bubble{background:var(--soil);color:white;border-top-right-radius:2px}
+.typing{display:flex;gap:4px;padding:.6rem .9rem;background:var(--surface);border:.5px solid var(--border);border-radius:10px;border-top-left-radius:2px}
+.td{width:6px;height:6px;border-radius:50%;background:var(--text-3);animation:bounce 1s ease infinite}
+.chat-inp-row{display:flex;gap:7px;padding:.75rem;border-top:.5px solid var(--border);background:white}
+.chat-inp-row input{flex:1;border:.5px solid var(--border);border-radius:var(--rs);padding:.55rem .85rem;font-family:'Source Sans 3',sans-serif;font-size:13px;outline:none}
+.chat-inp-row input:focus{border-color:var(--terra)}
+
+/* EXAM */
+.qpb{height:3px;background:var(--border);border-radius:99px;overflow:hidden;margin-bottom:.85rem}
+.qpf{height:100%;background:var(--terra);border-radius:99px;transition:width .3s}
+.qcard{background:var(--white);border:.5px solid var(--border);border-radius:var(--r);padding:1.5rem;margin-bottom:1rem}
+.qmeta{display:flex;align-items:center;gap:7px;margin-bottom:.85rem;flex-wrap:wrap}
+.qbadge{font-size:9px;font-weight:700;padding:2px 9px;border-radius:99px;letter-spacing:.5px;text-transform:uppercase}
+.qbadge.nat{background:var(--sky-bg);color:var(--sky)}
+.qbadge.ok{background:rgba(196,98,45,.1);color:var(--terra)}
+.qbadge.top{background:var(--sun-light);color:#7a5c10}
+.qnum{font-size:11px;color:var(--text-3)}
+.qstem{font-size:14px;line-height:1.7;color:var(--text);margin-bottom:1rem;font-weight:500}
+.opts{display:flex;flex-direction:column;gap:7px}
+.opt{padding:.65rem .9rem;border:.5px solid var(--border);border-radius:var(--rs);cursor:pointer;font-size:13px;line-height:1.5;transition:all .15s;display:flex;align-items:flex-start;gap:8px;background:white;color:var(--text);text-align:left;font-family:'Source Sans 3',sans-serif;width:100%}
+.opt:hover:not(:disabled){border-color:var(--terra);background:rgba(196,98,45,.04)}
+.opt.correct{border-color:var(--grass);background:var(--grass-light);color:var(--grass);font-weight:600}
+.opt.incorrect{border-color:var(--red);background:var(--red-bg);color:var(--red)}
+.opt:disabled{cursor:default}
+.ol{width:20px;height:20px;min-width:20px;border-radius:50%;background:var(--surface);border:.5px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;margin-top:1px;flex-shrink:0}
+.opt.correct .ol{background:var(--grass);color:white;border-color:var(--grass)}
+.opt.incorrect .ol{background:var(--red);color:white;border-color:var(--red)}
+.rationale{margin-top:.75rem;padding:.85rem;background:var(--sun-light);border:.5px solid rgba(232,168,56,.35);border-radius:var(--rs);font-size:12px;line-height:1.7;color:var(--text);display:none}
+.rationale.vis{display:block}
+.rat-lbl{font-weight:700;font-size:9px;letter-spacing:1px;text-transform:uppercase;color:#7a5c10;margin-bottom:5px}
+.ok-law-note{font-size:11px;margin-top:.5rem;padding:.5rem .75rem;background:rgba(196,98,45,.06);border-left:2px solid var(--terra);border-radius:0 4px 4px 0;color:var(--clay)}
+.score-disp{font-size:13px;color:var(--text-2)}.score-disp span{font-weight:700;color:var(--soil)}
+.qctl{display:flex;gap:8px;margin-top:.5rem}
+
+/* SIMULATOR */
+.stage-bar{display:flex;align-items:center;margin-bottom:1rem;overflow-x:auto;padding-bottom:.25rem}
+.st-wrap{display:flex;flex-direction:column;align-items:center;flex-shrink:0}
+.st-dot{width:28px;height:28px;border-radius:50%;border:2px solid var(--border);background:white;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:var(--text-3);transition:all .3s}
+.st-dot.done{background:var(--grass);border-color:var(--grass);color:white}
+.st-dot.active{background:var(--terra);border-color:var(--terra);color:white}
+.st-lbl{font-size:8px;color:var(--text-3);margin-top:3px;text-align:center;width:56px;text-transform:uppercase;letter-spacing:.3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.st-line{flex:1;height:2px;background:var(--border);margin-top:14px;transition:background .3s;min-width:12px}
+.st-line.done{background:var(--grass)}
+.ok-flag{display:inline-flex;align-items:center;gap:4px;background:rgba(196,98,45,.08);border:.5px solid rgba(196,98,45,.2);border-radius:4px;padding:2px 7px;font-size:9px;font-weight:700;color:var(--terra);text-transform:uppercase;letter-spacing:.5px;margin-bottom:.75rem}
+.consequence-box{margin-top:.75rem;padding:.85rem;border-radius:var(--rs);font-size:12px;line-height:1.7}
+.consequence-box.good{background:var(--grass-light);border:.5px solid rgba(45,106,79,.2);color:var(--grass)}
+.consequence-box.bad{background:var(--red-bg);border:.5px solid rgba(216,90,48,.2);color:var(--red)}
+.consequence-title{font-weight:700;font-size:9px;letter-spacing:1px;text-transform:uppercase;margin-bottom:5px}
+
+/* VOCAB */
+.vocab-card{background:white;border:.5px solid var(--border);border-radius:var(--r);padding:1.5rem;margin-bottom:1rem;text-align:center}
+.vocab-term{font-family:'Playfair Display',serif;font-size:2rem;font-weight:600;color:var(--soil);margin-bottom:.5rem}
+.vocab-type{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--text-3);margin-bottom:1.25rem}
+.vocab-def{font-size:14px;line-height:1.75;color:var(--text);display:none;margin-bottom:.75rem;text-align:left}
+.vocab-def.vis{display:block}
+.vocab-hook{font-size:12px;color:var(--text-2);font-style:italic;background:var(--sun-light);border-radius:6px;padding:.6rem .85rem;display:none;margin-bottom:.75rem;text-align:left}
+.vocab-hook.vis{display:block}
+.vocab-example{font-size:12px;background:rgba(196,98,45,.05);border-left:2px solid var(--terra);padding:.6rem .85rem;border-radius:0 6px 6px 0;display:none;text-align:left;color:var(--text-2);line-height:1.6}
+.vocab-example.vis{display:block}
+.vocab-btns{display:flex;gap:.6rem;justify-content:center;margin-top:1rem}
+.vocab-btn-reveal{padding:.65rem 1.5rem;background:var(--soil);color:white;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Source Sans 3',sans-serif}
+.vocab-btn-know{padding:.65rem 1.25rem;background:var(--grass-light);color:var(--grass);border:.5px solid rgba(45,106,79,.2);border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Source Sans 3',sans-serif}
+.vocab-btn-again{padding:.65rem 1.25rem;background:var(--red-bg);color:var(--red);border:.5px solid rgba(216,90,48,.2);border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Source Sans 3',sans-serif}
+.confusion-pair{background:rgba(232,168,56,.06);border:.5px solid rgba(232,168,56,.25);border-radius:var(--rs);padding:1rem;margin-bottom:.75rem}
+.confusion-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--amber);margin-bottom:.5rem}
+.vocab-progress{display:flex;align-items:center;gap:.75rem;margin-bottom:1rem}
+.vocab-prog-bar{flex:1;height:6px;background:var(--border);border-radius:99px;overflow:hidden}
+.vocab-prog-fill{height:100%;background:var(--terra);border-radius:99px;transition:width .4s}
+
+/* QUICK REF */
+.ref-grid{display:grid;grid-template-columns:1fr 1fr;gap:.75rem}
+.ref-card{background:white;border:.5px solid var(--border);border-radius:var(--rs);overflow:hidden}
+.ref-head{padding:.55rem .85rem;background:var(--soil);font-size:10px;font-weight:700;color:white;text-transform:uppercase;letter-spacing:.8px;display:flex;align-items:center;gap:6px}
+.ref-body{padding:.75rem .85rem}
+.ref-row{display:flex;justify-content:space-between;align-items:center;font-size:11px;padding:.3rem 0;border-bottom:.5px solid var(--border)}
+.ref-row:last-child{border-bottom:none}
+.ref-name{color:var(--text-2)}
+.ref-val{font-family:'DM Mono',monospace;font-weight:700;font-size:11px}
+.ref-val.ok{color:var(--grass)}.ref-val.warn{color:var(--amber)}.ref-val.abn{color:var(--red)}
+
+/* STATUTE */
+.statute-out{background:white;border:.5px solid var(--border);border-radius:var(--rs);padding:1.5rem;font-size:14px;line-height:1.8;color:var(--text);min-height:120px}
+.statute-out h3{font-family:'Playfair Display',serif;font-size:16px;color:var(--soil);margin:.75rem 0 .3rem}
+.statute-ref{font-family:'DM Mono',monospace;font-size:11px;color:var(--terra);background:rgba(196,98,45,.06);padding:2px 6px;border-radius:4px;border:.5px solid rgba(196,98,45,.15)}
+.statute-out ul{padding-left:1.25rem}.statute-out li{margin-bottom:.25rem}
+.statute-out strong{color:var(--soil)}
+.statute-chip{padding:4px 10px;border-radius:99px;font-size:11px;font-weight:600;border:.5px solid var(--border);cursor:pointer;transition:all .15s;background:white;color:var(--text-2);font-family:'Source Sans 3',sans-serif;white-space:nowrap}
+.statute-chip:hover{border-color:var(--terra);color:var(--terra)}
+
+/* MODAL */
+.modal-bg{position:fixed;inset:0;background:rgba(28,20,16,.75);z-index:900;display:none;align-items:center;justify-content:center;padding:2rem}
+.modal-bg.open{display:flex}
+.modal{background:white;border-radius:16px;padding:2rem;max-width:420px;width:100%}
+.modal-title{font-family:'Playfair Display',serif;font-size:20px;color:var(--soil);margin-bottom:.35rem}
+.modal-sub{font-size:13px;color:var(--text-2);margin-bottom:1.5rem;line-height:1.6}
+.topup-option{display:flex;align-items:center;justify-content:space-between;padding:.85rem 1rem;border:.5px solid var(--border);border-radius:var(--rs);margin-bottom:.6rem;cursor:pointer;transition:all .15s;text-decoration:none}
+.topup-option:hover{border-color:var(--terra);background:rgba(196,98,45,.03)}
+.topup-left{display:flex;align-items:center;gap:.75rem}
+.topup-icon{font-size:1.2rem}
+.topup-name{font-size:13px;font-weight:600;color:var(--soil)}
+.topup-desc{font-size:11px;color:var(--text-3)}
+.topup-price{font-family:'DM Mono',monospace;font-size:14px;font-weight:700;color:var(--terra)}
+
+/* TOAST */
+.pb-toast{position:fixed;bottom:2rem;right:2rem;background:var(--sun);color:var(--soil);font-size:13px;font-weight:700;padding:10px 18px;border-radius:9px;display:flex;align-items:center;gap:7px;box-shadow:0 4px 20px rgba(232,168,56,.4);opacity:0;transition:opacity .3s;z-index:500;pointer-events:none}
+.pb-toast.show{opacity:1}
+
+@media(max-width:640px){.fr,.dash-grid,.mode-grid,.ref-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<!-- AUTH -->
+<div id="auth-screen">
+  <div class="auth-glow"></div>
+  <div class="auth-box">
+    <div class="auth-mark">P</div>
+    <div class="auth-logo"><span class="p">Prof</span><span class="pp">Prep</span></div>
+    <div class="auth-tagline">Texas Insurance License Exam Preparation</div>
+    <div id="auth-step-email">
+      <p class="auth-sub">Enter your email to receive a 6-digit sign-in code.</p>
+      <label class="auth-label">Email Address</label>
+      <input type="email" id="auth-email" class="auth-input" placeholder="you@email.com" onkeydown="if(event.key==='Enter')sendOTP()">
+      <button type="button" id="auth-btn" class="auth-btn" onclick="sendOTP()"><i class="ti ti-send"></i> Send Code</button>
+    </div>
+    <div id="auth-step-code" style="display:none">
+      <p class="auth-sub" id="auth-code-sub">Enter the 6-digit code sent to your email.</p>
+      <label class="auth-label">6-Digit Code</label>
+      <input type="text" id="auth-code" class="auth-input" placeholder="123456" maxlength="6" inputmode="numeric" style="font-size:22px;letter-spacing:8px;text-align:center;font-family:monospace" onkeydown="if(event.key==='Enter')verifyOTP()">
+      <button type="button" id="auth-verify-btn" class="auth-btn" onclick="verifyOTP()"><i class="ti ti-check"></i> Sign In</button>
+      <button type="button" onclick="showEmailStep()" style="background:none;border:none;color:rgba(255,255,255,.3);font-size:12px;cursor:pointer;margin-top:.75rem;width:100%">&larr; Use a different email</button>
+    </div>
+    <div id="auth-msg" class="auth-msg"></div>
+    <div class="auth-fine">Codes expire after 10 minutes.<br><br>Already purchased? Use the same email address you entered at checkout.</div>
+  </div>
+</div>
+
+<!-- PAYMENT WALL -->
+<div id="payment-screen" style="display:none;position:fixed;inset:0;background:#1C1410;align-items:center;justify-content:center;z-index:999;padding:2rem;flex-direction:column;text-align:center">
+  <div style="max-width:420px;width:100%">
+    <div style="font-family:'Playfair Display',serif;font-size:22px;margin-bottom:1.5rem"><span style="color:#E8A838">Prof</span><span style="color:#C4622D">Prep</span></div>
+    <div style="background:rgba(255,255,255,.04);border:1px solid rgba(196,98,45,.2);border-radius:12px;padding:1.75rem;margin-bottom:1.25rem">
+      <div style="font-size:13px;color:rgba(255,255,255,.6);line-height:1.7;margin-bottom:1.25rem">Your email was not found or your access has expired.<br><br>Purchase access to get started.</div>
+      <div style="font-family:monospace;font-size:36px;color:#C4622D;margin-bottom:.35rem">$79</div>
+      <div style="font-size:11px;color:rgba(255,255,255,.25);margin-bottom:1.25rem">One-time &middot; 6 months full access</div>
+      <a href="https://buy.stripe.com/8x2eV6aqr1OqftC0ZI6Na1o" style="display:flex;align-items:center;justify-content:center;background:#C4622D;color:white;font-size:14px;font-weight:700;padding:13px;border-radius:8px;text-decoration:none;margin-bottom:.75rem">Get Access &rarr;</a>
+      <div style="font-size:11px;color:rgba(255,255,255,.2)">Use the same email at checkout that you sign in with.</div>
+    </div>
+    <button type="button" onclick="showAuth()" style="background:none;border:none;color:rgba(255,255,255,.25);font-size:12px;cursor:pointer">&larr; Use a different email</button>
+  </div>
+</div>
+
+<!-- TOP-UP MODAL -->
+<div class="modal-bg" id="topup-modal">
+  <div class="modal">
+    <div class="modal-title">Need more AI credits?</div>
+    <div class="modal-sub" id="topup-msg">You've used your allocation. Top up to keep going.</div>
+    <a href="https://buy.stripe.com/5kQ6oAaqr0Km2GQ6k26Na1r" class="topup-option">
+      <div class="topup-left"><span class="topup-icon">⚡</span><div><div class="topup-name">5 Adaptive Exams</div><div class="topup-desc">AI-generated, targets your weak areas</div></div></div>
+      <div class="topup-price">$4.99</div>
+    </a>
+    <a href="https://buy.stripe.com/5kQ3co1TV3Wy81a5fY6Na1s" class="topup-option">
+      <div class="topup-left"><span class="topup-icon">🧠</span><div><div class="topup-name">10 Tutor Sessions</div><div class="topup-desc">Socratic reasoning, persistent context</div></div></div>
+      <div class="topup-price">$2.99</div>
+    </a>
+    <a href="https://buy.stripe.com/8x2eV6aqr1OqftC0ZI6Na1o" class="topup-option">
+      <div class="topup-left"><span class="topup-icon">🏡</span><div><div class="topup-name">3 Simulator Runs</div><div class="topup-desc">Full transaction, all 7 stages</div></div></div>
+      <div class="topup-price">$3.99</div>
+    </a>
+    <button type="button" onclick="closeTopup()" style="width:100%;margin-top:.75rem;padding:.65rem;background:none;border:.5px solid var(--border);border-radius:8px;font-size:13px;color:var(--text-2);cursor:pointer;font-family:'Source Sans 3',sans-serif">Maybe later</button>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app" style="display:none">
+  <div class="app-header">
+    <div class="hbrand">
+      <div class="hmark">P</div>
+      <div><div class="hname"><span class="p">Prof</span><span class="pp">Prep</span></div><div class="hsub">Texas Insurance License Exam Prep</div></div>
+    </div>
+    <div class="huser">
+      <div class="hemail" id="user-email-disp"></div>
+      <button type="button" class="btn-out" onclick="signOut()">Sign Out</button>
+    </div>
+  </div>
+
+  <div class="tab-bar">
+    <button type="button" class="tab active" onclick="switchTab('dash')" id="tab-dash"><i class="ti ti-home"></i> Dashboard</button>
+    <button type="button" class="tab" onclick="switchTab('guide')" id="tab-guide"><i class="ti ti-notebook"></i> Study Guide</button>
+    <button type="button" class="tab" onclick="switchTab('tutor')" id="tab-tutor"><i class="ti ti-messages"></i> Tutor</button>
+    <button type="button" class="tab" onclick="switchTab('exam')" id="tab-exam"><i class="ti ti-clipboard-list"></i> Practice Exam</button>
+    <button type="button" class="tab" onclick="switchTab('simulator')" id="tab-simulator"><i class="ti ti-home-2"></i> Transaction Sim</button>
+    <button type="button" class="tab" onclick="switchTab('vocab')" id="tab-vocab"><i class="ti ti-abc"></i> Vocabulary</button>
+    <button type="button" class="tab" onclick="switchTab('ref')" id="tab-ref"><i class="ti ti-books"></i> Quick Reference</button>
+    <button type="button" class="tab" onclick="switchTab('statute')" id="tab-statute"><i class="ti ti-scale"></i> Statute Explainer</button>
+  </div>
+
+  <div class="main">
+
+    <!-- DASHBOARD -->
+    <div class="panel active" id="panel-dash">
+      <div class="sh"><div><div class="sec-title">Dashboard</div><div class="sec-sub">Your Texas Insurance license exam prep at a glance</div></div></div>
+      <div class="dash-grid">
+        <div class="dc dark">
+          <div class="dc-lbl lt">Study Streak</div>
+          <div class="dc-val sun" id="dash-streak">0</div>
+          <div class="dc-sub lt">days in a row</div>
+          <div class="streak-dots" id="streak-dots"></div>
+        </div>
+        <div class="dc">
+          <div class="dc-lbl">Best Exam Score</div>
+          <div class="dc-val" id="dash-readiness" style="font-size:32px">—</div>
+          <div class="dc-sub" id="dash-readiness-sub">Complete practice exams to see score</div>
+          <div style="margin-top:.6rem" id="dash-pbs"></div>
+        </div>
+      </div>
+      <div class="card" style="padding:.85rem 1.25rem">
+        <div class="tbl" style="margin-bottom:.6rem">AI Credits Remaining</div>
+        <div class="alloc-row" id="alloc-display"></div>
+        <div style="font-size:11px;color:var(--text-3)">Static practice exams are always unlimited. <a href="#" onclick="openTopup('Top up AI credits to keep going.');return false" style="color:var(--terra);text-decoration:none;font-weight:600">Top up AI credits &rarr;</a></div>
+      </div>
+      <div id="dash-nudge"></div>
+      <div class="sec-title" style="font-size:15px;margin-bottom:.75rem">Study Tools</div>
+      <div class="mode-grid">
+        <div class="mc terra" onclick="switchTab('guide')"><div class="mc-icon">📚</div><div class="mc-title">Study Guide Builder</div><div class="mc-desc">Any topic, national or Texas law</div></div>
+        <div class="mc sun" onclick="switchTab('simulator')"><div class="mc-icon">🏡</div><div class="mc-title">Transaction Simulator</div><div class="mc-desc">Walk into your first deal ready</div></div>
+        <div class="mc sky" onclick="switchTab('tutor')"><div class="mc-icon">💬</div><div class="mc-title">Socratic Tutor</div><div class="mc-desc">Builds reasoning, not just recall</div></div>
+        <div class="mc grass" onclick="switchTab('exam')"><div class="mc-icon">📋</div><div class="mc-title">Practice Exam</div><div class="mc-desc">Static unlimited + adaptive AI</div></div>
+        <div class="mc clay" onclick="switchTab('vocab')"><div class="mc-icon">📖</div><div class="mc-title">Vocabulary Engine</div><div class="mc-desc">Terms, confusion pairs, memory hooks</div></div>
+        <div class="mc soil" onclick="switchTab('statute')"><div class="mc-icon">⚖️</div><div class="mc-title">Statute Explainer</div><div class="mc-desc">TDI rules in plain English</div></div>
+      </div>
+      <div class="dash-grid" style="margin-bottom:1rem">
+        <div class="topic-bars-wrap" style="margin-bottom:0">
+          <div class="tbl" style="color:var(--sky)">National Portion — 80 Questions</div>
+          <div id="topic-bars-national"><div class="empty" style="padding:1rem"><p>Complete practice questions to see performance.</p></div></div>
+        </div>
+        <div class="topic-bars-wrap" style="margin-bottom:0;border-color:rgba(196,98,45,.2)">
+          <div class="tbl" style="color:var(--terra)">Texas State Portion — 30 Questions</div>
+          <div id="topic-bars-tx"><div class="empty" style="padding:1rem"><p>Complete Texas questions to see performance.</p></div></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="tbl" style="margin-bottom:.6rem">Recent Activity</div>
+        <div id="activity-feed"><div class="empty"><i class="ti ti-history"></i><p>Your study sessions will appear here.</p></div></div>
+      </div>
+    </div>
+
+    <!-- STUDY GUIDE -->
+    <div class="panel" id="panel-guide">
+      <div class="sh"><div><div class="sec-title">Study Guide Builder</div><div class="sec-sub">AI-generated guides for any real estate topic</div></div><div class="limit-badge" id="guide-limit">10 remaining</div></div>
+      <div class="card">
+        <div class="fg">
+          <label>National Topics</label>
+          <div class="pills" id="guide-pills-nat"></div>
+          <label style="margin-top:.5rem">Texas-Specific Topics <span style="background:rgba(196,98,45,.1);color:var(--terra);font-size:9px;padding:1px 6px;border-radius:3px;font-weight:700;border:.5px solid rgba(196,98,45,.2)">OK LAW</span></label>
+          <div class="pills" id="guide-pills-ok"></div>
+        </div>
+        <div class="fr">
+          <div class="fg" style="margin-bottom:0"><label>Depth</label><select id="guide-depth"><option value="overview">Quick Overview</option><option value="standard" selected>Standard — Exam Ready</option><option value="deep">Deep Dive</option></select></div>
+          <div class="fg" style="margin-bottom:0"><label>Focus</label><select id="guide-focus"><option value="all">Concepts + Application + Law</option><option value="concepts">Core Concepts Only</option><option value="law">Texas Law Focus</option><option value="exam">Exam Tips Focus</option></select></div>
+        </div>
+        <div style="margin-top:1rem;display:flex;gap:7px">
+          <button type="button" class="btn btn-soil" onclick="buildGuide()" id="btn-guide"><i class="ti ti-wand"></i> Build Study Guide</button>
+          <button type="button" class="btn btn-outline" onclick="clearGuide()">Clear</button>
+        </div>
+      </div>
+      <div class="card" id="guide-card" style="display:none"><div class="guide-out" id="guide-out"></div></div>
+    </div>
+
+    <!-- TUTOR -->
+    <div class="panel" id="panel-tutor">
+      <div class="sh"><div><div class="sec-title">Socratic Tutor</div><div class="sec-sub">Build real understanding through guided questioning</div></div><div class="limit-badge" id="tutor-limit">75 remaining</div></div>
+      <div class="chat-wrap">
+        <div class="chat-head">
+          <div class="hmark" style="width:26px;height:26px;font-size:14px;border-width:1.5px">P</div>
+          <div class="chat-head-title">ProfPrep Real Estate Tutor</div>
+          <div class="chat-online"></div>
+        </div>
+        <div class="chip-bar" id="tutor-chips"></div>
+        <div class="chat-msgs" id="chat-msgs">
+          <div class="msg t"><div class="av t">P</div><div class="bubble">Welcome to your Texas Real Estate tutor. I won't just give you answers — I'll ask questions that build the reasoning the PSI exam actually tests.<br><br>What are we working on today?</div></div>
+        </div>
+        <div class="chat-inp-row">
+          <input type="text" id="chat-input" placeholder="Ask about any insurance concept or Texas law..." onkeydown="if(event.key==='Enter')sendChat()">
+          <button type="button" class="btn btn-soil" onclick="sendChat()" id="btn-chat" style="padding:.55rem .9rem"><i class="ti ti-send"></i></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- PRACTICE EXAM -->
+    <div class="panel" id="panel-exam">
+      <div class="sh"><div><div class="sec-title">Practice Exam</div><div class="sec-sub">Static questions are unlimited. Adaptive AI exams use your allocation.</div></div><div style="display:flex;align-items:center;gap:8px"><div class="score-disp" id="score-disp" style="display:none">Score: <span id="score-val">0/0</span></div><div class="limit-badge" id="exam-limit">25 adaptive remaining</div></div></div>
+      <div class="card" id="exam-config-panel">
+        <div class="fr">
+          <div class="fg" style="margin-bottom:0"><label>Exam Mode</label><select id="exam-mode" onchange="updateExamMode()"><option value="static">Static Practice — Unlimited</option><option value="adaptive">Adaptive AI Exam — Uses Allocation</option></select></div>
+          <div class="fg" style="margin-bottom:0"><label>Section</label><select id="exam-section"><option value="mixed">Mixed — National + Texas</option><option value="national">National Portion Only</option><option value="oklahoma">Texas Portion Only</option></select></div>
+        </div>
+        <div class="fg"><label>Topic</label><div class="pills" id="exam-pills"></div></div>
+        <div class="fr">
+          <div class="fg" style="margin-bottom:0"><label>Question Type</label><select id="exam-type"><option value="mixed" selected>Mixed</option><option value="mcq">MCQ Only</option><option value="scenario">Scenario-Based</option></select></div>
+          <div class="fg" style="margin-bottom:0"><label>Questions</label><select id="exam-count"><option value="5" selected>5 Questions</option><option value="10">10 Questions</option><option value="20">20 Questions</option></select></div>
+        </div>
+        <div id="adaptive-note" style="display:none;margin-bottom:.75rem;padding:.6rem .85rem;background:rgba(196,98,45,.06);border:.5px solid rgba(196,98,45,.15);border-radius:var(--rs);font-size:12px;color:var(--clay)"><i class="ti ti-sparkles"></i> Adaptive mode generates questions targeting your weak areas. Uses 1 allocation per session.</div>
+        <div style="margin-top:.5rem"><button type="button" class="btn btn-soil" onclick="startExam()" id="btn-exam"><i class="ti ti-player-play"></i> Start Exam</button></div>
+      </div>
+      <div id="exam-area" style="display:none">
+        <div class="qpb"><div class="qpf" id="exam-progress" style="width:0%"></div></div>
+        <div id="exam-container"></div>
+        <div class="qctl">
+          <button type="button" class="btn btn-outline" onclick="resetExam()"><i class="ti ti-refresh"></i> New Exam</button>
+          <button type="button" class="btn btn-sun" id="btn-more-exam" onclick="startExam()" style="display:none"><i class="ti ti-plus"></i> More Questions</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- TRANSACTION SIMULATOR -->
+    <div class="panel" id="panel-simulator">
+      <div class="sh"><div><div class="sec-title">Transaction Simulator</div><div class="sec-sub">Walk a complete Texas residential transaction — make real decisions at every stage</div></div><div class="limit-badge" id="sim-limit">10 runs remaining</div></div>
+      <div class="card" id="sim-config">
+        <div style="background:rgba(196,98,45,.05);border:.5px solid rgba(196,98,45,.15);border-radius:var(--rs);padding:1rem;margin-bottom:1.25rem;font-size:13px;line-height:1.7;color:var(--text-2)"><strong style="color:var(--soil)">Walk into your first deal without it feeling like your first deal.</strong><br>The simulator puts you in the agent's seat for a complete residential transaction. At every stage you face a real decision with real consequences. Texas law is called out explicitly where it applies.</div>
+        <div class="fr">
+          <div class="fg" style="margin-bottom:0"><label>Transaction Type</label><select id="sim-type"></select></div>
+          <div class="fg" style="margin-bottom:0"><label>Complications</label><select id="sim-complications"></select></div>
+        </div>
+        <button type="button" class="btn btn-soil" onclick="startSimulator()" id="btn-sim"><i class="ti ti-home-2"></i> Begin Transaction</button>
+      </div>
+      <div id="sim-area" style="display:none">
+        <div class="stage-bar" id="sim-stage-bar"></div>
+        <div id="sim-content"></div>
+        <div style="display:flex;gap:8px;margin-top:.5rem" id="sim-controls"></div>
+      </div>
+    </div>
+
+    <!-- VOCABULARY -->
+    <div class="panel" id="panel-vocab">
+      <div class="sh"><div><div class="sec-title">Vocabulary Engine</div><div class="sec-sub">Terms, confusion pairs, applied usage, and memory hooks — always unlimited</div></div></div>
+      <div class="card">
+        <div class="fr">
+          <div class="fg" style="margin-bottom:0"><label>Category</label><select id="vocab-category" onchange="loadVocabCategory()"><option value="general">General Real Estate Terms</option><option value="contracts">Contracts &amp; Agreements</option><option value="financing">Financing &amp; Mortgages</option><option value="title">Title &amp; Ownership</option><option value="agency">Agency &amp; Representation</option><option value="oklahoma">Texas-Specific Terms</option><option value="confusion">Confusion Pairs</option></select></div>
+          <div class="fg" style="margin-bottom:0"><label>Mode</label><select id="vocab-mode"><option value="flashcard">Flashcard — Reveal &amp; Rate</option></select></div>
+        </div>
+        <div style="display:flex;gap:7px">
+          <button type="button" class="btn btn-soil" onclick="startVocab()"><i class="ti ti-cards"></i> Start Drill</button>
+          <button type="button" class="btn btn-outline" onclick="shuffleAndStart()"><i class="ti ti-shuffle"></i> Shuffle</button>
+        </div>
+      </div>
+      <div id="vocab-area"></div>
+    </div>
+
+    <!-- QUICK REFERENCE -->
+    <div class="panel" id="panel-ref">
+      <div class="sh"><div><div class="sec-title">Quick Reference</div><div class="sec-sub">Pearson VUE exam structure, domain weights, coverage concepts, and Texas law essentials</div></div></div>
+      <div class="ref-grid" id="ref-grid"></div>
+    </div>
+
+    <!-- STATUTE EXPLAINER -->
+    <div class="panel" id="panel-statute">
+      <div class="sh"><div><div class="sec-title">Statute Explainer</div><div class="sec-sub">Any TDI rule or Texas Insurance Code — plain English with examon example</div></div></div>
+      <div class="card">
+        <div class="fg">
+          <label>Quick Lookups</label>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:1rem" id="statute-chips"></div>
+        </div>
+        <div class="fg" style="margin-bottom:.75rem"><label>Or Ask Anything About Texas Law</label><textarea id="statute-input" placeholder="E.g. 'What does TDI Rule 605:10-17-4 say?' or 'When must I present the agency disclosure form?'" style="height:80px"></textarea></div>
+        <button type="button" class="btn btn-soil" onclick="explainStatute()" id="btn-statute"><i class="ti ti-scale"></i> Explain This</button>
+      </div>
+      <div class="card" id="statute-card" style="display:none"><div class="statute-out" id="statute-out"></div></div>
+    </div>
+
+  </div>
+</div>
+
+<div class="pb-toast" id="pb-toast">🏆 New Personal Best!</div>
+
+<script>
+const EXAM_TYPE = 'tx_insurance_pc';
+const ALLOC = { guide:10, tutor:75, adaptive_exam:25, sim:10 };
+
+// Fallback config if get_config fails
+const FALLBACK_CONFIG = {
+  topics: { national: ["Property Insurance Concepts", "Casualty and Liability Insurance", "Commercial Lines Coverage", "Homeowners and Personal Lines", "Auto Insurance", "Marine and Inland Marine", "Surety and Fidelity Bonds", "Insurance Regulation and Law"], state: ['TDI Rules & License Law','Disclosure Act','Trust Accounts','Advertising Rules','License Renewal & CE'] },
+  tutor_prompts: {"property": "Help me understand property insurance coverage concepts.", "casualty": "What is the difference between liability and casualty coverage?", "life": "Explain term life versus whole life insurance.", "health": "Walk me through health insurance concepts \u2014 deductibles, copays, coinsurance.", "state": "What are the most important TDI rules for the Texas exam?", "ethics": "Walk me through insurance ethics and unfair trade practices.", "underwriting": "Explain underwriting principles and risk classification.", "claims": "Walk me through the claims process and settlement practices."},
+  statute_lookups: [{"label": "License Requirements", "query": "Texas insurance producer license requirements TDI"}, {"label": "Unfair Trade Practices", "query": "Texas insurance unfair trade practices act"}, {"label": "P&C Requirements", "query": "Texas property casualty insurance state requirements"}, {"label": "L&H Requirements", "query": "Texas life health insurance state requirements"}, {"label": "CE Requirements", "query": "Texas insurance continuing education requirements TDI"}],
+  simulator: { stage_names: ['Client & Agency','Listing/Agreement','Disclosure','Offer & Negotiation','Under Contract','Closing','Post-Closing'], transaction_types: [{value:'standard',label:"Standard Sale — Buyer's Agent"},{value:'listing',label:'Standard Sale — Listing Agent'},{value:'dual',label:'Dual Agency Scenario'},{value:'distressed',label:'Distressed / Short Sale'},{value:'new_construction',label:'New Construction'}], complications: [{value:'standard',label:'Standard — No major complications'},{value:'disclosure',label:'Disclosure Issue'},{value:'appraisal',label:'Low Appraisal'},{value:'title',label:'Title Defect'},{value:'financing',label:'Financing Falls Through'},{value:'random',label:'Surprise Me'}] },
+  vocab: { general:[], contracts:[], financing:[], title:[], agency:[], tx:[], confusion:[] },
+  quick_ref: { categories:[] }
+};
+
+let sb=null, currentUser=null, otpEmail='';
+let examScore={correct:0,total:0}, answeredQs=new Set(), currentQs=[], mcqSelected={};
+let simData=null;
+let vocabList=[], vocabIdx=0, vocabKnown=new Set(), vocabAgain=new Set();
+
+// ── ALLOCATIONS ──────────────────────────────────────────────
+function checkDateReset(){const s=localStorage.getItem('pp_r_date'),t=new Date().toDateString();if(s!==t){localStorage.setItem('pp_r_date',t);Object.keys(ALLOC).forEach(k=>localStorage.removeItem('pp_u_r_'+k));}}
+function getAllocUsed(k){checkDateReset();return parseInt(localStorage.getItem('pp_u_r_'+k)||'0');}
+function addAllocUsed(k){localStorage.setItem('pp_u_r_'+k,getAllocUsed(k)+1);renderAllocDisplay();}
+function getAllocRemaining(k){return Math.max(0,ALLOC[k]-getAllocUsed(k));}
+function canUse(k){return getAllocUsed(k)<ALLOC[k];}
+function renderAllocDisplay(){
+  const el=document.getElementById('alloc-display');if(!el)return;
+  el.innerHTML=[{key:'adaptive_exam',label:'Adaptive Exams',icon:'⚡'},{key:'tutor',label:'Tutor Sessions',icon:'🧠'},{key:'sim',label:'Simulator Runs',icon:'🏡'}]
+    .map(it=>{const r=getAllocRemaining(it.key);return`<div class="alloc-chip ${r<=2?'low':'ok'}">${it.icon} ${r} ${it.label}</div>`;}).join('');
+  ['tutor-limit','exam-limit','sim-limit','guide-limit'].forEach(id=>{
+    const el=document.getElementById(id);if(!el)return;
+    const k=id==='tutor-limit'?'tutor':id==='exam-limit'?'adaptive_exam':id==='sim-limit'?'sim':'guide';
+    el.textContent=getAllocRemaining(k)+(id==='exam-limit'?' adaptive remaining':' remaining');
+  });
+}
+function openTopup(msg){document.getElementById('topup-msg').textContent=msg||'Top up to keep going.';document.getElementById('topup-modal').classList.add('open');}
+function closeTopup(){document.getElementById('topup-modal').classList.remove('open');}
+
+// ── INIT ─────────────────────────────────────────────────────
+async function init(){
+  let cfg;
+  try{const res=await fetch('https://profprep-data.jesse-d79.workers.dev/config');cfg=await res.json();if(cfg.error||!cfg.url||!cfg.anon)throw new Error(cfg.error||'Config missing');}
+  catch(e){showAuthMsg('Configuration error: '+e.message,'error');document.getElementById('auth-btn').disabled=true;return;}
+  const {createClient}=supabase;sb=createClient(cfg.url,cfg.anon);
+  const {data:{session}}=await sb.auth.getSession();
+  if(session?.user)await setUser(session.user);else showAuth();
+  sb.auth.onAuthStateChange((event,session)=>{if(event==='SIGNED_IN'&&session?.user)setUser(session.user);else if(event==='SIGNED_OUT')showAuth();});
+}
+
+async function loadExamConfig(){
+  try{
+    const {config}=await callData('get_config');
+    window.EXAM_CONFIG=config||FALLBACK_CONFIG;
+  }catch(e){
+    console.warn('get_config failed, using fallback:',e);
+    window.EXAM_CONFIG=FALLBACK_CONFIG;
+  }
+  buildUI();
+}
+
+function buildUI(){
+  const cfg=window.EXAM_CONFIG;
+  // Topic pills — guide
+  const natPills=document.getElementById('guide-pills-nat');
+  const okPills=document.getElementById('guide-pills-ok');
+  if(natPills&&cfg.topics?.national){natPills.innerHTML=cfg.topics.national.map((t,i)=>`<div class="pill ${i===0?'sel':''}" onclick="selPill(this)">${t}</div>`).join('');}
+  if(okPills&&cfg.topics?.state){okPills.innerHTML=cfg.topics.state.map(t=>`<div class="pill ok-pill" onclick="selPill(this)">${t}</div>`).join('');}
+  // Topic pills — exam
+  const examPills=document.getElementById('exam-pills');
+  if(examPills&&cfg.topics){
+    const all=[...(cfg.topics.national||[]),...(cfg.topics.state||[])];
+    examPills.innerHTML=all.map((t,i)=>{const isOk=(cfg.topics.state||[]).includes(t);return`<div class="pill ${i===0?'sel':''} ${isOk?'ok-pill':''}" onclick="selPill(this)">${t}</div>`;}).join('');
+  }
+  // Tutor chips
+  const chips=document.getElementById('tutor-chips');
+  if(chips&&cfg.tutor_prompts){chips.innerHTML=Object.keys(cfg.tutor_prompts).map(k=>`<div class="chip" onclick="qp('${k}')">${k.charAt(0).toUpperCase()+k.slice(1)}</div>`).join('');}
+  // Simulator dropdowns
+  const simType=document.getElementById('sim-type');
+  const simComp=document.getElementById('sim-complications');
+  if(simType&&cfg.simulator?.transaction_types){simType.innerHTML=cfg.simulator.transaction_types.map(t=>`<option value="${t.value}">${t.label}</option>`).join('');}
+  if(simComp&&cfg.simulator?.complications){simComp.innerHTML=cfg.simulator.complications.map(t=>`<option value="${t.value}">${t.label}</option>`).join('');}
+  // Statute chips
+  const statChips=document.getElementById('statute-chips');
+  if(statChips&&cfg.statute_lookups){statChips.innerHTML=cfg.statute_lookups.map(s=>`<button class="statute-chip" onclick="lookupStatute('${s.query}')">${s.label}</button>`).join('');}
+  // Quick ref
+  renderQuickRef();
+}
+
+function renderQuickRef(){
+  const cfg=window.EXAM_CONFIG;
+  const grid=document.getElementById('ref-grid');if(!grid)return;
+  if(!cfg?.quick_ref?.categories?.length){grid.innerHTML='<div class="empty"><p>Quick reference loading...</p></div>';return;}
+  grid.innerHTML=cfg.quick_ref.categories.map(cat=>`
+    <div class="ref-card">
+      <div class="ref-head"><i class="ti ${cat.icon}"></i> ${cat.name}</div>
+      <div class="ref-body">${cat.rows.map(r=>`<div class="ref-row"><span class="ref-name">${r.label}</span><span class="ref-val ${r.status||'ok'}">${r.value}</span></div>`).join('')}</div>
+    </div>`).join('');
+}
+
+async function setUser(user){
+  currentUser=user;
+  const {data:{session}}=await sb.auth.getSession();
+  currentUser.token=session?.access_token||'';
+  window.currentSessionId=crypto.randomUUID();
+  try{const res=await callData('check_access',{email:user.email});if(!res.access){document.getElementById('auth-screen').style.display='none';document.getElementById('app').style.display='none';document.getElementById('payment-screen').style.display='flex';return;}}
+  catch(e){console.warn('Access check failed:',e);}
+  document.getElementById('auth-screen').style.display='none';
+  document.getElementById('payment-screen').style.display='none';
+  document.getElementById('app').style.display='block';
+  document.getElementById('user-email-disp').textContent=user.email;
+  await loadExamConfig();
+  renderAllocDisplay();
+  loadDashboard();
+}
+function showAuth(){currentUser=null;document.getElementById('auth-screen').style.display='flex';document.getElementById('app').style.display='none';document.getElementById('payment-screen').style.display='none';}
+
+async function sendOTP(){
+  const email=document.getElementById('auth-email').value.trim();if(!email){showAuthMsg('Please enter your email address.','error');return;}
+  const btn=document.getElementById('auth-btn');btn.disabled=true;btn.innerHTML='<span class="spinner"></span> Sending...';
+  const {error}=await sb.auth.signInWithOtp({email,options:{shouldCreateUser:true,emailRedirectTo:null,data:{}}});
+  if(error){showAuthMsg('Error: '+error.message,'error');btn.disabled=false;btn.innerHTML='<i class="ti ti-send"></i> Send Code';return;}
+  otpEmail=email;document.getElementById('auth-step-email').style.display='none';document.getElementById('auth-step-code').style.display='block';
+  document.getElementById('auth-code-sub').textContent='Enter the 6-digit code sent to '+email;document.getElementById('auth-code').focus();
+  btn.disabled=false;btn.innerHTML='<i class="ti ti-send"></i> Send Code';
+}
+async function verifyOTP(){
+  const code=document.getElementById('auth-code').value.trim().replace(/\s/g,'');if(code.length!==6){showAuthMsg('Please enter the 6-digit code.','error');return;}
+  const btn=document.getElementById('auth-verify-btn');btn.disabled=true;btn.innerHTML='<span class="spinner"></span> Verifying...';
+  const {error}=await sb.auth.verifyOtp({email:otpEmail,token:code,type:'email'});
+  if(error){showAuthMsg('Invalid or expired code. Try again.','error');btn.disabled=false;btn.innerHTML='<i class="ti ti-check"></i> Sign In';return;}
+  btn.disabled=false;btn.innerHTML='<i class="ti ti-check"></i> Sign In';
+}
+function showEmailStep(){document.getElementById('auth-step-email').style.display='block';document.getElementById('auth-step-code').style.display='none';document.getElementById('auth-code').value='';showAuthMsg('','');}
+function showAuthMsg(msg,type){const el=document.getElementById('auth-msg');el.textContent=msg;el.className='auth-msg '+type;}
+async function signOut(){await sb.auth.signOut();showAuth();}
+window.addEventListener('beforeunload',()=>{if(!currentUser||!window.currentSessionId)return;navigator.sendBeacon('https://profprep-claude.jesse-d79.workers.dev/',JSON.stringify({action:'end_session',user_id:currentUser.id,exam_type:EXAM_TYPE,session_id:window.currentSessionId}));});
+
+// ── WORKER CALLS ─────────────────────────────────────────────
+async function callData(action,data={}){
+  const res=await fetch('https://profprep-data.jesse-d79.workers.dev/data',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+currentUser.token},body:JSON.stringify({action,user_id:currentUser.id,exam_type:EXAM_TYPE,data})});
+  return res.json();
+}
+async function callGenerate(system,messages,max_tokens=1500){
+  const {data:{session}}=await sb.auth.getSession();
+  const res=await fetch('https://profprep-claude.jesse-d79.workers.dev/',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+session.access_token},body:JSON.stringify({action:'generate',user_id:currentUser.id,exam_type:EXAM_TYPE,system,messages,max_tokens})});
+  const data=await res.json();if(data.error)throw new Error(data.error);return data.content;
+}
+async function sendTutorMessage(message){
+  const {data:{session}}=await sb.auth.getSession();
+  const res=await fetch('https://profprep-claude.jesse-d79.workers.dev/',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+session.access_token},body:JSON.stringify({action:'chat',user_id:currentUser.id,exam_type:EXAM_TYPE,session_id:window.currentSessionId,message})});
+  const data=await res.json();if(data.error)throw new Error(data.error);return data.content;
+}
+async function logSession(mode,topic){try{await callData('log_session',{mode,topic,duration_seconds:0,score_pct:0});}catch(e){}}
+async function saveProgress(topic,correct,total){try{await callData('save_progress',{topic,correct,total});}catch(e){}}
+async function saveBest(metric,value){try{const r=await callData('save_best',{metric,value});return r.new_best;}catch(e){return false;}}
+function extractJSON(raw){const s=raw.replace(/```json\s*/gi,'').replace(/```\s*/g,'').trim();const a=s.indexOf('{'),b=s.lastIndexOf('}');if(a===-1||b===-1)throw new Error('No JSON found');return s.substring(a,b+1);}
+function showLoading(el){el.innerHTML='<div class="loading-card"><div class="loading-spinner"></div><div>Generating — usually 5-10 seconds</div></div>';}
+function showPBToast(){const t=document.getElementById('pb-toast');t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3000);}
+function switchTab(tab){document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));document.getElementById('panel-'+tab).classList.add('active');document.getElementById('tab-'+tab).classList.add('active');if(tab==='dash')loadDashboard();}
+function selPill(el){el.classList.toggle('sel');}
+function updateExamMode(){document.getElementById('adaptive-note').style.display=document.getElementById('exam-mode').value==='adaptive'?'block':'none';}
+
+// ── DASHBOARD ────────────────────────────────────────────────
+async function loadDashboard(){
+  try{const [res,bRes]=await Promise.all([callData('get_progress'),callData('get_bests').catch(()=>({bests:[]}))]);renderDashboard(res,bRes.bests||[]);}
+  catch(e){console.warn('Dashboard error:',e);}
+}
+function renderDashboard(res,bests){
+  const streak=res.streak||{current_streak:0};const progress=res.progress||[];const sessions=res.sessions||[];
+  document.getElementById('dash-streak').textContent=streak.current_streak;
+  const examBest=bests.find(b=>b.metric==='exam_pct');
+  if(examBest){
+    const el=document.getElementById('dash-readiness');el.textContent=examBest.value+'%';
+    el.style.color=examBest.value>=75?'var(--grass)':examBest.value>=65?'var(--amber)':'var(--red)';
+    document.getElementById('dash-readiness-sub').textContent=examBest.value>=75?'Above passing threshold':'Below 75% — keep practicing';
+    document.getElementById('dash-pbs').innerHTML=`<div class="pb-badge"><i class="ti ti-trophy" style="font-size:10px"></i> Best: ${examBest.value}%</div>`;
+  }
+  const days=['S','M','T','W','T','F','S'];let dots='';
+  for(let i=6;i>=0;i--){const d=new Date(Date.now()-i*86400000);dots+=`<div class="sd ${i===0&&streak.current_streak>0?'today':''}">${days[d.getDay()]}</div>`;}
+  document.getElementById('streak-dots').innerHTML=dots;
+  const cfg=window.EXAM_CONFIG||FALLBACK_CONFIG;
+  const nat=cfg.topics?.national||[];const state=cfg.topics?.state||[];
+  const topicAgg={};progress.forEach(p=>{if(!topicAgg[p.topic]){topicAgg[p.topic]={correct:0,total:0};}topicAgg[p.topic].correct+=p.correct||0;topicAgg[p.topic].total+=p.total||0;});
+  function renderBars(cid,topics){
+    const el=document.getElementById(cid);if(!el)return;
+    if(!topics.some(t=>topicAgg[t]?.total>0)){el.innerHTML='<div class="empty" style="padding:1rem"><p>Complete practice questions to see performance.</p></div>';return;}
+    el.innerHTML=topics.map(t=>{const d=topicAgg[t];if(!d?.total)return`<div class="tb-row"><div class="tb-name">${t}</div><div class="tb-wrap"><div class="tb-fill" style="width:0%"></div></div><div class="tb-pct" style="color:var(--text-3)">—</div></div>`;const pct=Math.round((d.correct/d.total)*100);const c=pct>=75?'var(--grass)':pct>=65?'var(--amber)':'var(--red)';return`<div class="tb-row"><div class="tb-name">${t}</div><div class="tb-wrap"><div class="tb-fill" style="width:${pct}%;background:${c}"></div></div><div class="tb-pct" style="color:${c}">${pct}%</div></div>`;}).join('');
+  }
+  renderBars('topic-bars-national',nat);renderBars('topic-bars-tx',state);
+  const allTopics=[...nat,...state];const weak=allTopics.map(t=>({t,d:topicAgg[t]})).filter(x=>x.d?.total>=3).sort((a,b)=>(a.d.correct/a.d.total)-(b.d.correct/b.d.total));
+  if(weak.length&&Math.round((weak[0].d.correct/weak[0].d.total)*100)<65){const w=weak[0];const pct=Math.round((w.d.correct/w.d.total)*100);const isOK=state.includes(w.t);document.getElementById('dash-nudge').innerHTML=`<div class="nudge"><div style="font-size:18px">⚠️</div><div class="nudge-text">Weakest area: <strong>${w.t} (${pct}%)</strong>${isOK?' <span style="background:rgba(196,98,45,.1);color:var(--terra);font-size:9px;padding:1px 5px;border-radius:3px;font-weight:700">OK LAW</span>':''} — below 75% passing threshold.</div><div style="display:flex;gap:6px"><button class="btn btn-soil" style="font-size:11px;padding:.35rem .75rem" onclick="switchTab('exam')">Practice</button><button class="btn btn-outline" style="font-size:11px;padding:.35rem .75rem" onclick="switchTab('tutor')">Tutor</button></div></div>`;}
+  if(sessions.length){const mLabel={study_guide:'Study Guide',tutor:'Tutor',exam:'Practice Exam',simulator:'Transaction Simulator',vocab:'Vocabulary',statute:'Statute Explainer'};const mIcon={study_guide:'ti-notebook',tutor:'ti-messages',exam:'ti-clipboard-list',simulator:'ti-home-2',vocab:'ti-abc',statute:'ti-scale'};document.getElementById('activity-feed').innerHTML='<div class="act-list">'+sessions.slice(0,8).map(s=>`<div class="act-item"><div class="act-icon" style="background:rgba(196,98,45,.08)"><i class="ti ${mIcon[s.mode]||'ti-star'}" style="color:var(--terra)"></i></div><div style="flex:1"><div class="act-t">${mLabel[s.mode]||s.mode}${s.topic?' — '+s.topic:''}</div><div class="act-time">${new Date(s.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'})}</div></div></div>`).join('')+'</div>';}
+}
+
+// ── STUDY GUIDE ──────────────────────────────────────────────
+async function buildGuide(){
+  if(!canUse('guide')){openTopup("You've used your daily study guide limit. Top up or wait until tomorrow.");return;}
+  const natT=[...document.querySelectorAll('#guide-pills-nat .pill.sel')].map(p=>p.textContent.trim());
+  const okT=[...document.querySelectorAll('#guide-pills-ok .pill.sel')].map(p=>p.textContent.trim());
+  const topics=[...natT,...okT];if(!topics.length){alert('Select at least one topic.');return;}
+  const depth=document.getElementById('guide-depth').value,focus=document.getElementById('guide-focus').value;
+  const btn=document.getElementById('btn-guide');btn.disabled=true;btn.innerHTML='<span class="spinner"></span> Building...';
+  const card=document.getElementById('guide-card'),out=document.getElementById('guide-out');
+  card.style.display='block';showLoading(out);
+  const dMap={overview:'concise overview',standard:'thorough exam-ready study guide',deep:'comprehensive deep dive'};
+  const fMap={all:'Cover core concepts, practical application, and exam tips.',concepts:'Focus on core concepts and definitions.',law:'Focus heavily on Texas statutes, TDI rules, and compliance requirements.',exam:'Focus on PSI exam tips, common wrong answers, and what the exam tests.'};
+  const hasOK=okT.length>0;
+  const okInstr=hasOK?' Use <div class="ok-callout"><div class="ok-callout-title">⚖️ Texas Law</div>...</div> for Texas-specific rules.':'';
+  const sys=`You are an expert Texas Real Estate PSI exam prep tutor. Create study guides in HTML: <h3> for sections, <h4> for subsections, <ul><li> for lists, <strong> for key terms, <p> for explanation, <div class="formula-box"> for formulas. End with <div class="alert"><div class="alert-title">🔑 PSI Exam Key Points</div>...</div>. HTML only.${okInstr}`;
+  try{out.innerHTML=await callGenerate(sys,[{role:'user',content:`Create a ${dMap[depth]} for an Texas Real Estate license candidate on: "${topics.join(', ')}". ${fMap[focus]} Distinguish national content from Texas-specific law where relevant.`}],1800);addAllocUsed('guide');await logSession('study_guide',topics.join(', '));}
+  catch(e){out.innerHTML=`<em style="color:var(--red)">Error: ${e.message}</em>`;}
+  btn.disabled=false;btn.innerHTML='<i class="ti ti-wand"></i> Build Study Guide';
+}
+function clearGuide(){document.getElementById('guide-card').style.display='none';}
+
+// ── TUTOR ────────────────────────────────────────────────────
+function qp(key){const prompts=(window.EXAM_CONFIG||FALLBACK_CONFIG).tutor_prompts||{};const text=prompts[key]||key;document.getElementById('chat-input').value=text;sendChat();}
+function addMsg(role,text){const msgs=document.getElementById('chat-msgs');const d=document.createElement('div');d.className='msg '+role;d.innerHTML=`<div class="av ${role}">${role==='t'?'P':'U'}</div><div class="bubble">${text.replace(/\n/g,'<br>')}</div>`;msgs.appendChild(d);msgs.scrollTop=msgs.scrollHeight;}
+async function sendChat(){
+  if(!canUse('tutor')){openTopup("You've used your Socratic tutor allocation. Top up to continue.");return;}
+  const inp=document.getElementById('chat-input'),text=inp.value.trim();if(!text)return;
+  addMsg('user',text);inp.value='';inp.disabled=true;
+  const btn=document.getElementById('btn-chat');btn.disabled=true;btn.innerHTML='<span class="spinner" style="border-top-color:#fff"></span>';
+  const msgs=document.getElementById('chat-msgs');const tid='t'+Date.now();
+  const td=document.createElement('div');td.className='msg t';td.id=tid;td.innerHTML='<div class="av t">P</div><div class="typing"><div class="td" style="animation-delay:0s"></div><div class="td" style="animation-delay:.2s"></div><div class="td" style="animation-delay:.4s"></div></div>';
+  msgs.appendChild(td);msgs.scrollTop=msgs.scrollHeight;
+  try{const reply=await sendTutorMessage(text);document.getElementById(tid)?.remove();addMsg('t',reply);addAllocUsed('tutor');await logSession('tutor',text.substring(0,50));}
+  catch(e){document.getElementById(tid)?.remove();addMsg('t','Something went wrong. Please try again.');}
+  inp.disabled=false;inp.focus();btn.disabled=false;btn.innerHTML='<i class="ti ti-send"></i>';renderAllocDisplay();
+}
+
+// ── PRACTICE EXAM ─────────────────────────────────────────────
+async function startExam(){
+  const mode=document.getElementById('exam-mode').value;
+  if(mode==='adaptive'&&!canUse('adaptive_exam')){openTopup("You've used your adaptive exam allocation. Top up, or use the unlimited static exam mode.");return;}
+  const topics=[...document.querySelectorAll('#exam-pills .pill.sel')].map(p=>p.textContent.trim());if(!topics.length){alert('Select at least one topic.');return;}
+  const section=document.getElementById('exam-section').value,type=document.getElementById('exam-type').value,count=document.getElementById('exam-count').value;
+  const btn=document.getElementById('btn-exam');btn.disabled=true;btn.innerHTML='<span class="spinner"></span> Generating...';
+  examScore={correct:0,total:0};answeredQs=new Set();currentQs=[];
+  document.getElementById('score-disp').style.display='none';
+  const container=document.getElementById('exam-container');showLoading(container);
+  document.getElementById('exam-area').style.display='block';document.getElementById('exam-config-panel').style.display='none';document.getElementById('exam-progress').style.width='0%';
+  const sMap={national:'National portion only — property ownership, agency, contracts, financing, fair housing, math, appraisal.',oklahoma:'Texas state portion only — TDI rules, Texas license law, disclosure requirements, trust accounts, advertising rules.',mixed:'Mix of national and Texas content. Flag Texas questions with section:"Texas".'};
+  const tMap={mixed:'mixed question styles',mcq:'standard multiple choice',scenario:'scenario-based situational questions'};
+  const adaptNote=mode==='adaptive'?' ADAPTIVE MODE: target weak areas. Vary difficulty, focus on application over recall.':'';
+  const sys='You are an expert Texas Real Estate PSI exam question writer. Return ONLY valid JSON, no markdown. Format: {"questions":[{"id":1,"section":"National","topic":"Agency","stem":"...","options":["A. ...","B. ...","C. ...","D. ..."],"correct":0,"rationale":"Full explanation.","ok_law_note":"Specific TDI rule if applicable — omit if not"}]}. correct is 0-indexed.';
+  try{
+    const raw=await callGenerate(sys,[{role:'user',content:`Generate exactly ${count} Texas Real Estate license exam questions. ${sMap[section]} Type: ${tMap[type]}.${adaptNote} Topics: ${topics.join(', ')}. PSI exam format, full rationales.`}],2500);
+    const data=JSON.parse(extractJSON(raw));currentQs=data.questions;renderExam(currentQs);
+    document.getElementById('score-disp').style.display='flex';updateScore();
+    if(mode==='adaptive')addAllocUsed('adaptive_exam');await logSession('exam',topics.join(', '));
+  }catch(e){container.innerHTML=`<div style="padding:1.5rem;color:var(--red)">Error: ${e.message}</div>`;}
+  btn.disabled=false;btn.innerHTML='<i class="ti ti-player-play"></i> Start Exam';renderAllocDisplay();
+}
+function renderExam(qs){
+  const container=document.getElementById('exam-container');container.innerHTML='';
+  qs.forEach((q,qi)=>{
+    const isOK=q.section==='Texas';
+    const oh=q.options.map((o,i)=>`<button type="button" class="opt" id="opt-${qi}-${i}" onclick="toggleMCQ(this,${qi},${i})"><span class="ol">${['A','B','C','D'][i]}</span><span>${o.replace(/^[A-D]\.\s*/,'')}</span></button>`).join('');
+    container.innerHTML+=`<div class="qcard"><div class="qmeta"><span class="qbadge ${isOK?'ok':'nat'}">${isOK?'Texas':'National'}</span><span class="qbadge top">${q.topic||''}</span><span class="qnum">Q${qi+1} of ${qs.length}</span></div><p class="qstem">${q.stem}</p><div class="opts" id="opts-${qi}">${oh}</div><div style="margin-top:.85rem" id="submit-row-${qi}"><button type="button" class="btn btn-soil" onclick="submitAnswer(${qi})" style="font-size:12px;padding:.5rem 1rem"><i class="ti ti-check"></i> Submit Answer</button></div><div class="rationale" id="rat-${qi}"><div class="rat-lbl">Rationale</div><div>${q.rationale}</div>${q.ok_law_note?`<div class="ok-law-note"><i class="ti ti-scale" style="font-size:11px"></i> ${q.ok_law_note}</div>`:''}</div></div>`;
+  });
+  document.getElementById('btn-more-exam').style.display='flex';
+}
+function toggleMCQ(btn,qi,oi){if(answeredQs.has(qi))return;document.querySelectorAll('#opts-'+qi+' .opt').forEach(o=>{o.style.borderColor='';o.style.background='';o.style.color='';o.style.fontWeight='';});btn.style.borderColor='var(--terra)';btn.style.background='rgba(196,98,45,.06)';btn.style.color='var(--clay)';btn.style.fontWeight='600';mcqSelected[qi]=oi;}
+async function submitAnswer(qi){
+  if(answeredQs.has(qi))return;if(mcqSelected[qi]===undefined){alert('Select an answer first.');return;}
+  const q=currentQs[qi];answeredQs.add(qi);
+  q.options.forEach((_,i)=>{const el=document.getElementById('opt-'+qi+'-'+i);if(!el)return;el.disabled=true;el.style.cursor='default';if(i===q.correct)el.classList.add('correct');else if(i===mcqSelected[qi])el.classList.add('incorrect');});
+  if(mcqSelected[qi]===q.correct)examScore.correct++;examScore.total++;
+  document.getElementById('submit-row-'+qi).style.display='none';document.getElementById('rat-'+qi).classList.add('vis');
+  updateScore();updateExamProgress();
+  if(answeredQs.size===currentQs.length){
+    const topics=[...document.querySelectorAll('#exam-pills .pill.sel')].map(p=>p.textContent.trim());
+    const pct=Math.round((examScore.correct/examScore.total)*100);
+    for(const t of topics)await saveProgress(t,Math.ceil(examScore.correct/topics.length),Math.ceil(examScore.total/topics.length));
+    if(await saveBest('exam_pct',pct))showPBToast();
+  }
+}
+function updateScore(){document.getElementById('score-val').textContent=`${examScore.correct}/${examScore.total}`;}
+function updateExamProgress(){document.getElementById('exam-progress').style.width=(currentQs.length?(answeredQs.size/currentQs.length)*100:0)+'%';}
+function resetExam(){document.getElementById('exam-config-panel').style.display='block';document.getElementById('exam-area').style.display='none';document.getElementById('score-disp').style.display='none';examScore={correct:0,total:0};answeredQs=new Set();currentQs=[];Object.keys(mcqSelected).forEach(k=>delete mcqSelected[k]);}
+
+// ── TRANSACTION SIMULATOR ─────────────────────────────────────
+async function startSimulator(){
+  if(!canUse('sim')){openTopup("You've used your simulator allocation. Top up to run more transactions.");return;}
+  const cfg=window.EXAM_CONFIG||FALLBACK_CONFIG;
+  const type=document.getElementById('sim-type').value,comp=document.getElementById('sim-complications').value;
+  const typeLabel=cfg.simulator?.transaction_types?.find(t=>t.value===type)?.label||type;
+  const compLabel=cfg.simulator?.complications?.find(t=>t.value===comp)?.label||comp;
+  const stageNames=cfg.simulator?.stage_names||FALLBACK_CONFIG.simulator.stage_names;
+  const btn=document.getElementById('btn-sim');btn.disabled=true;btn.innerHTML='<span class="spinner"></span> Building transaction...';
+  simData=null;document.getElementById('sim-area').style.display='block';document.getElementById('sim-config').style.display='none';
+  const content=document.getElementById('sim-content');showLoading(content);
+  const sys='You are an expert Texas real estate transaction simulator. Return ONLY valid JSON, no markdown. Create realistic Texas residential transactions with specific TDI rule references. Every field must be complete.';
+  const prompt=`Create a 7-stage Texas insurance claims and coverage scenario simulation. Agent role: ${typeLabel}. Include complication: ${compLabel}.
+Return this exact JSON:
+{"title":"descriptive title","property":"property description","client":"client description","stages":[{"name":"stage name","situation":"2-3 sentence situation","ok_law_flag":"specific TDI rule or Texas statute","question":"What is the correct action?","options":["A. option","B. option","C. option","D. option"],"correct":0,"consequence":"Result of correct choice — legal and practical.","wrong_consequence":"Result of wrong choice — license implications.","rationale":"Full explanation referencing Texas law."}]}
+Include all 7 stages: ${stageNames.join(', ')}. Insert the complication naturally at the appropriate stage.`;
+  try{
+    const raw=await callGenerate(sys,[{role:'user',content:prompt}],3000);
+    simData=JSON.parse(extractJSON(raw));renderSimStage(0);addAllocUsed('sim');await logSession('simulator',simData.title||type);
+  }catch(e){content.innerHTML=`<div style="padding:1.5rem;color:var(--red)">Error: ${e.message}</div>`;}
+  btn.disabled=false;btn.innerHTML='<i class="ti ti-home-2"></i> Begin Transaction';renderAllocDisplay();
+}
+function renderSimStage(idx){
+  const s=simData.stages[idx];
+  const stageNames=(window.EXAM_CONFIG||FALLBACK_CONFIG).simulator?.stage_names||FALLBACK_CONFIG.simulator.stage_names;
+  const bar=document.getElementById('sim-stage-bar');bar.innerHTML='';
+  stageNames.forEach((name,i)=>{
+    const wrap=document.createElement('div');wrap.className='st-wrap';
+    const cls=i<idx?'done':i===idx?'active':'';
+    wrap.innerHTML=`<div class="st-dot ${cls}">${i<idx?'<i class="ti ti-check" style="font-size:10px"></i>':(i+1)}</div><div class="st-lbl">${name}</div>`;
+    bar.appendChild(wrap);
+    if(i<stageNames.length-1){const line=document.createElement('div');line.className='st-line'+(i<idx?' done':'');bar.appendChild(line);}
+  });
+  const oh=s.options.map((o,i)=>`<button type="button" class="opt" id="sim-opt-${idx}-${i}" onclick="selectSimOpt(this,${idx},${i})"><span class="ol">${['A','B','C','D'][i]}</span><span>${o.replace(/^[A-D]\.\s*/,'')}</span></button>`).join('');
+  document.getElementById('sim-content').innerHTML=`
+    <div class="card">
+      <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--text-3);margin-bottom:.5rem">${simData.title} &middot; Stage ${idx+1} of ${stageNames.length}</div>
+      <div style="font-size:12px;color:var(--text-3);margin-bottom:.75rem">🏠 ${simData.property} &nbsp;|&nbsp; 👤 ${simData.client}</div>
+      ${s.ok_law_flag?`<div class="ok-flag"><i class="ti ti-scale" style="font-size:9px"></i> Texas Law: ${s.ok_law_flag}</div>`:''}
+      <div style="font-size:13px;line-height:1.75;color:var(--text)">${s.situation}</div>
+    </div>
+    <div class="qcard">
+      <p class="qstem">${s.question}</p>
+      <div class="opts" id="sim-opts-${idx}">${oh}</div>
+      <div class="rationale" id="sim-rat-${idx}">
+        <div class="rat-lbl">Rationale</div><div style="margin-bottom:.75rem">${s.rationale}</div>
+        <div class="consequence-box good" id="sim-con-${idx}" style="display:none"><div class="consequence-title">✓ Correct Choice Result</div><div>${s.consequence}</div></div>
+        <div class="consequence-box bad" id="sim-wrong-${idx}" style="display:none"><div class="consequence-title">⚠ If You Had Chosen Wrong</div><div>${s.wrong_consequence}</div></div>
+      </div>
+    </div>`;
+  document.getElementById('sim-controls').innerHTML='<button type="button" class="btn btn-outline" onclick="resetSimulator()"><i class="ti ti-refresh"></i> New Transaction</button>';
+}
+function selectSimOpt(btn,si,oi){
+  const correct=simData.stages[si].correct;
+  document.querySelectorAll(`#sim-opts-${si} .opt`).forEach((o,i)=>{o.disabled=true;if(i===correct)o.classList.add('correct');else if(i===oi)o.classList.add('incorrect');});
+  document.getElementById(`sim-rat-${si}`).classList.add('vis');
+  document.getElementById(`sim-con-${si}`).style.display='block';
+  document.getElementById(`sim-wrong-${si}`).style.display='block';
+  const isLast=si===simData.stages.length-1;
+  const controls=document.getElementById('sim-controls');
+  if(!isLast){controls.innerHTML+=`<button type="button" class="btn btn-soil" onclick="renderSimStage(${si+1})"><i class="ti ti-arrow-right"></i> Next Stage</button>`;}
+  else{controls.innerHTML+=`<button type="button" class="btn btn-sun" onclick="resetSimulator()">✓ Transaction Complete — Run Another</button>`;}
+}
+function resetSimulator(){simData=null;document.getElementById('sim-config').style.display='block';document.getElementById('sim-area').style.display='none';document.getElementById('sim-stage-bar').innerHTML='';document.getElementById('sim-content').innerHTML='';document.getElementById('sim-controls').innerHTML='';}
+
+// ── VOCABULARY ────────────────────────────────────────────────
+function loadVocabCategory(){
+  const cat=document.getElementById('vocab-category').value;
+  const vocab=(window.EXAM_CONFIG||FALLBACK_CONFIG).vocab||{};
+  vocabList=[...(vocab[cat]||[])];vocabIdx=0;vocabKnown=new Set();vocabAgain=new Set();
+}
+function startVocab(){loadVocabCategory();renderVocabCard();}
+function shuffleAndStart(){loadVocabCategory();for(let i=vocabList.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[vocabList[i],vocabList[j]]=[vocabList[j],vocabList[i]];}renderVocabCard();}
+function renderVocabCard(){
+  const area=document.getElementById('vocab-area');
+  if(!vocabList.length){area.innerHTML='<div class="card"><div class="empty"><p>No terms found for this category. The vocab bank may still be loading.</p></div></div>';return;}
+  if(vocabIdx>=vocabList.length){
+    area.innerHTML=`<div class="qcard" style="text-align:center;padding:2.5rem"><div style="font-size:2rem;margin-bottom:.75rem">🎉</div><div class="sec-title" style="font-size:18px;margin-bottom:.35rem">Deck Complete</div><div style="font-size:13px;color:var(--text-2);margin-bottom:1.5rem">Got it: ${vocabKnown.size} &nbsp;|&nbsp; Review again: ${vocabAgain.size}</div><div style="display:flex;gap:.75rem;justify-content:center"><button class="btn btn-soil" onclick="startVocab()">Start Over</button>${vocabAgain.size>0?`<button class="btn btn-outline" onclick="reviewAgain()">Review Flagged (${vocabAgain.size})</button>`:''}</div></div>`;
+    return;
+  }
+  const v=vocabList[vocabIdx];const isConfusion=v.type==='Confusion Pair';const pct=Math.round((vocabIdx/vocabList.length)*100);
+  area.innerHTML=`
+    <div class="vocab-progress"><span style="font-size:11px;color:var(--text-3)">${vocabIdx+1} / ${vocabList.length}</span><div class="vocab-prog-bar"><div class="vocab-prog-fill" style="width:${pct}%"></div></div><span style="font-size:11px;color:var(--text-3)">${vocabKnown.size} known</span></div>
+    ${isConfusion?`<div class="confusion-pair"><div class="confusion-title">⚡ Confusion Pair — Easy to Mix Up</div>`:''}
+    <div class="vocab-card">
+      <div class="vocab-type">${v.type}</div>
+      <div class="vocab-term">${v.term}</div>
+      <div class="vocab-def" id="vocab-def">${(v.def||'').replace(/\n/g,'<br>')}</div>
+      <div class="vocab-hook" id="vocab-hook">💡 ${v.hook||''}</div>
+      <div class="vocab-example" id="vocab-example"><strong>Example:</strong> ${v.example||''}</div>
+      <div class="vocab-btns" id="vocab-btns-reveal"><button class="vocab-btn-reveal" onclick="revealVocab()">Reveal Definition</button></div>
+      <div class="vocab-btns" id="vocab-btns-rate" style="display:none">
+        <button class="vocab-btn-again" onclick="rateVocab('again')">👎 Study Again</button>
+        <button class="vocab-btn-know" onclick="rateVocab('know')">👍 Got It</button>
+      </div>
+    </div>
+    ${isConfusion?'</div>':''}`;
+}
+function revealVocab(){document.getElementById('vocab-def').classList.add('vis');document.getElementById('vocab-hook').classList.add('vis');document.getElementById('vocab-example').classList.add('vis');document.getElementById('vocab-btns-reveal').style.display='none';document.getElementById('vocab-btns-rate').style.display='flex';}
+function rateVocab(rating){if(rating==='know')vocabKnown.add(vocabIdx);else vocabAgain.add(vocabIdx);vocabIdx++;renderVocabCard();}
+function reviewAgain(){const again=[...vocabAgain];vocabList=again.map(i=>vocabList[i]).filter(Boolean);vocabIdx=0;vocabKnown=new Set();vocabAgain=new Set();renderVocabCard();}
+
+// ── STATUTE EXPLAINER ─────────────────────────────────────────
+function lookupStatute(query){document.getElementById('statute-input').value=query;explainStatute();}
+async function explainStatute(){
+  const query=document.getElementById('statute-input').value.trim();if(!query){alert('Enter a statute or question.');return;}
+  const btn=document.getElementById('btn-statute');btn.disabled=true;btn.innerHTML='<span class="spinner"></span> Looking up...';
+  const card=document.getElementById('statute-card'),out=document.getElementById('statute-out');
+  card.style.display='block';showLoading(out);
+  const sys=`You are an Texas real estate law expert. Explain Texas statutes and TDI rules in plain English for license exam candidates. Use HTML: <h3> for rule names, <span class="statute-ref"> for specific citations, <ul><li> for requirements, <strong> for key terms. Always include: (1) plain English explanation, (2) consequence for violation, (3) practical transaction example. End with <div class="alert"><div class="alert-title">📋 PSI Exam Tip</div>what the exam tests about this rule</div>.`;
+  try{out.innerHTML=await callGenerate(sys,[{role:'user',content:`Explain for an Texas Real Estate license candidate: "${query}". Include specific TDI rule numbers or Texas statute citations.`}],1200);await logSession('statute',query.substring(0,50));}
+  catch(e){out.innerHTML=`<em style="color:var(--red)">Error: ${e.message}</em>`;}
+  btn.disabled=false;btn.innerHTML='<i class="ti ti-scale"></i> Explain This';
+}
+
+init();
+</script>
+</body>
+</html>
