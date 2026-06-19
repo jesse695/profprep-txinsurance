@@ -483,14 +483,14 @@ textarea{resize:vertical;min-height:80px;line-height:1.6}
 
     <!-- TRANSACTION SIMULATOR -->
     <div class="panel" id="panel-simulator">
-      <div class="sh"><div><div class="sec-title">Transaction Simulator</div><div class="sec-sub">Walk a complete Texas residential transaction — make real decisions at every stage</div></div><div class="limit-badge" id="sim-limit">10 runs remaining</div></div>
+      <div class="sh"><div><div class="sec-title">Coverage Scenario Simulator</div><div class="sec-sub">Your first claim doesn't feel like your first claim — walk a complete Texas insurance scenario before the exam</div></div><div class="limit-badge" id="sim-limit">10 runs remaining</div></div>
       <div class="card" id="sim-config">
-        <div style="background:rgba(196,98,45,.05);border:.5px solid rgba(196,98,45,.15);border-radius:var(--rs);padding:1rem;margin-bottom:1.25rem;font-size:13px;line-height:1.7;color:var(--text-2)"><strong style="color:var(--soil)">Walk into your first deal without it feeling like your first deal.</strong><br>The simulator puts you in the agent's seat for a complete residential transaction. At every stage you face a real decision with real consequences. Texas law is called out explicitly where it applies.</div>
+        <div style="background:rgba(196,98,45,.05);border:.5px solid rgba(196,98,45,.15);border-radius:var(--rs);padding:1rem;margin-bottom:1.25rem;font-size:13px;line-height:1.7;color:var(--text-2)"><strong style="color:var(--soil)">Your first claim doesn't feel like your first claim.</strong><br>The simulator puts you in the agent's seat for a complete residential transaction. At every stage you face a real decision with real consequences. Texas law is called out explicitly where it applies.</div>
         <div class="fr">
-          <div class="fg" style="margin-bottom:0"><label>Transaction Type</label><select id="sim-type"></select></div>
+          <div class="fg" style="margin-bottom:0"><label>Scenario Type</label><select id="sim-type"></select></div>
           <div class="fg" style="margin-bottom:0"><label>Complications</label><select id="sim-complications"></select></div>
         </div>
-        <button type="button" class="btn btn-soil" onclick="startSimulator()" id="btn-sim"><i class="ti ti-home-2"></i> Begin Transaction</button>
+        <button type="button" class="btn btn-soil" onclick="startSimulator()" id="btn-sim"><i class="ti ti-shield"></i> Begin Scenario</button>
       </div>
       <div id="sim-area" style="display:none">
         <div class="stage-bar" id="sim-stage-bar"></div>
@@ -504,7 +504,7 @@ textarea{resize:vertical;min-height:80px;line-height:1.6}
       <div class="sh"><div><div class="sec-title">Vocabulary Engine</div><div class="sec-sub">Terms, confusion pairs, applied usage, and memory hooks — always unlimited</div></div></div>
       <div class="card">
         <div class="fr">
-          <div class="fg" style="margin-bottom:0"><label>Category</label><select id="vocab-category" onchange="loadVocabCategory()"><option value="general">General Real Estate Terms</option><option value="contracts">Contracts &amp; Agreements</option><option value="financing">Financing &amp; Mortgages</option><option value="title">Title &amp; Ownership</option><option value="agency">Agency &amp; Representation</option><option value="oklahoma">Texas-Specific Terms</option><option value="confusion">Confusion Pairs</option></select></div>
+          <div class="fg" style="margin-bottom:0"><label>Category</label><select id="vocab-category" onchange="loadVocabCategory()"><option value="general">General Insurance Terms</option><option value="contracts">Policy Types &amp; Coverage</option><option value="financing">Claims &amp; Procedures</option><option value="title">Underwriting &amp; Risk</option><option value="agency">Agency &amp; Representation</option><option value="oklahoma">Texas-Specific Terms</option><option value="confusion">Confusion Pairs</option></select></div>
           <div class="fg" style="margin-bottom:0"><label>Mode</label><select id="vocab-mode"><option value="flashcard">Flashcard — Reveal &amp; Rate</option></select></div>
         </div>
         <div style="display:flex;gap:7px">
@@ -549,7 +549,24 @@ const FALLBACK_CONFIG = {
   topics: { national: ["Property Insurance Concepts", "Casualty and Liability Insurance", "Commercial Lines Coverage", "Homeowners and Personal Lines", "Auto Insurance", "Marine and Inland Marine", "Surety and Fidelity Bonds", "Insurance Regulation and Law"], state: ['TDI Rules & License Law','Disclosure Act','Trust Accounts','Advertising Rules','License Renewal & CE'] },
   tutor_prompts: {"property": "Help me understand property insurance coverage concepts.", "casualty": "What is the difference between liability and casualty coverage?", "life": "Explain term life versus whole life insurance.", "health": "Walk me through health insurance concepts \u2014 deductibles, copays, coinsurance.", "state": "What are the most important TDI rules for the Texas exam?", "ethics": "Walk me through insurance ethics and unfair trade practices.", "underwriting": "Explain underwriting principles and risk classification.", "claims": "Walk me through the claims process and settlement practices."},
   statute_lookups: [{"label": "License Requirements", "query": "Texas insurance producer license requirements TDI"}, {"label": "Unfair Trade Practices", "query": "Texas insurance unfair trade practices act"}, {"label": "P&C Requirements", "query": "Texas property casualty insurance state requirements"}, {"label": "L&H Requirements", "query": "Texas life health insurance state requirements"}, {"label": "CE Requirements", "query": "Texas insurance continuing education requirements TDI"}],
-  simulator: { stage_names: ['Client & Agency','Listing/Agreement','Disclosure','Offer & Negotiation','Under Contract','Closing','Post-Closing'], transaction_types: [{value:'standard',label:"Standard Sale — Buyer's Agent"},{value:'listing',label:'Standard Sale — Listing Agent'},{value:'dual',label:'Dual Agency Scenario'},{value:'distressed',label:'Distressed / Short Sale'},{value:'new_construction',label:'New Construction'}], complications: [{value:'standard',label:'Standard — No major complications'},{value:'disclosure',label:'Disclosure Issue'},{value:'appraisal',label:'Low Appraisal'},{value:'title',label:'Title Defect'},{value:'financing',label:'Financing Falls Through'},{value:'random',label:'Surprise Me'}] },
+  simulator: {
+    stage_names: ['Client Intake','Coverage Recommendation','Application & Underwriting','Policy Delivery','Endorsement / Change','Claim Filed','Resolution & Compliance'],
+    transaction_types: [
+      {value:'pc_homeowner',label:'P&C — Homeowner New Policy'},
+      {value:'pc_auto',label:'P&C — Personal Auto Policy'},
+      {value:'pc_commercial',label:'P&C — Commercial Lines'},
+      {value:'lh_term',label:'L&H — Term Life Policy'},
+      {value:'lh_health',label:'L&H — Individual Health Policy'},
+    ],
+    complications: [
+      {value:'standard',label:'Standard — No major complications'},
+      {value:'claim_denial',label:'Claim Denial Dispute'},
+      {value:'misrepresentation',label:'Application Misrepresentation'},
+      {value:'coverage_gap',label:'Coverage Gap Discovery'},
+      {value:'unfair_practice',label:'Unfair Trade Practice Issue'},
+      {value:'random',label:'Surprise Me'},
+    ]
+  },
   vocab: { general:[], contracts:[], financing:[], title:[], agency:[], tx:[], confusion:[] },
   quick_ref: { categories:[] }
 };
@@ -834,15 +851,15 @@ async function startSimulator(){
   simData=null;document.getElementById('sim-area').style.display='block';document.getElementById('sim-config').style.display='none';
   const content=document.getElementById('sim-content');showLoading(content);
   const sys='You are an expert Texas real estate transaction simulator. Return ONLY valid JSON, no markdown. Create realistic Texas residential transactions with specific TDI rule references. Every field must be complete.';
-  const prompt=`Create a 7-stage Texas insurance claims and coverage scenario simulation. Agent role: ${typeLabel}. Include complication: ${compLabel}.
+  const prompt=`Create a 7-stage ${state} insurance producer scenario simulation. Scenario type: ${typeLabel}. Include complication: ${compLabel}.
 Return this exact JSON:
-{"title":"descriptive title","property":"property description","client":"client description","stages":[{"name":"stage name","situation":"2-3 sentence situation","ok_law_flag":"specific TDI rule or Texas statute","question":"What is the correct action?","options":["A. option","B. option","C. option","D. option"],"correct":0,"consequence":"Result of correct choice — legal and practical.","wrong_consequence":"Result of wrong choice — license implications.","rationale":"Full explanation referencing Texas law."}]}
-Include all 7 stages: ${stageNames.join(', ')}. Insert the complication naturally at the appropriate stage.`;
+{"title":"descriptive scenario title","client":"client name and profile","policy":"policy type and key details","stages":[{"name":"stage name","situation":"2-3 sentence situation the producer faces","law_flag":"specific TDI regulation or Texas Insurance Code section that applies","question":"What is the correct producer action?","options":["A. option","B. option","C. option","D. option"],"correct":0,"consequence":"Result of correct choice — coverage and compliance outcome.","wrong_consequence":"Result of wrong choice — license or E&O implications.","rationale":"Full explanation referencing Texas insurance law."}]}
+Include all 7 stages: ${stageNames.join(', ')}. Insert the complication naturally at the appropriate stage. Make the scenario realistic — a real producer could face this in Texas.`;
   try{
     const raw=await callGenerate(sys,[{role:'user',content:prompt}],3000);
     simData=JSON.parse(extractJSON(raw));renderSimStage(0);addAllocUsed('sim');await logSession('simulator',simData.title||type);
   }catch(e){content.innerHTML=`<div style="padding:1.5rem;color:var(--red)">Error: ${e.message}</div>`;}
-  btn.disabled=false;btn.innerHTML='<i class="ti ti-home-2"></i> Begin Transaction';renderAllocDisplay();
+  btn.disabled=false;btn.innerHTML='<i class="ti ti-shield"></i> Begin Scenario';renderAllocDisplay();
 }
 function renderSimStage(idx){
   const s=simData.stages[idx];
@@ -860,7 +877,7 @@ function renderSimStage(idx){
     <div class="card">
       <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--text-3);margin-bottom:.5rem">${simData.title} &middot; Stage ${idx+1} of ${stageNames.length}</div>
       <div style="font-size:12px;color:var(--text-3);margin-bottom:.75rem">🏠 ${simData.property} &nbsp;|&nbsp; 👤 ${simData.client}</div>
-      ${s.ok_law_flag?`<div class="ok-flag"><i class="ti ti-scale" style="font-size:9px"></i> Texas Law: ${s.ok_law_flag}</div>`:''}
+      ${s.law_flag?`<div class="ok-flag"><i class="ti ti-scale" style="font-size:9px"></i> Texas Law: ${s.law_flag}</div>`:''}
       <div style="font-size:13px;line-height:1.75;color:var(--text)">${s.situation}</div>
     </div>
     <div class="qcard">
